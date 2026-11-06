@@ -338,7 +338,7 @@ p {
 }
 
 .field-hint {
-  margin: -0.55rem 0 0;
+  margin: 0.1rem 0rem 0 0.2rem;
   color: var(--color-copy);
   font-size: 0.82rem;
 }

@@ -9,7 +9,7 @@ import { formatarMoeda } from '../utils/formatarMoeda';
 import { formatarDuracao } from '../utils/formatarDuracao';
 import { obterYoutubeEmbedUrl } from '../utils/youtube';
 import { Icon } from '@mdi/react';
-import { mdiArrowLeft, mdiClock, mdiCurrencyUsd, mdiAccountGroup } from '@mdi/js';
+import { mdiArrowLeft, mdiClock, mdiCurrencyBrl, mdiAccountGroup } from '@mdi/js';
 
 export function DetalheMassagemPage() {
     // useParams extrai os parâmetros da URL
@@ -96,7 +96,7 @@ export function DetalheMassagemPage() {
                         <div className="detail-stat">
                             <strong>Investimento</strong>
                             <span>
-                                <Icon path={mdiCurrencyUsd} size="1rem" className="stat-icon" />
+                                <Icon path={mdiCurrencyBrl} size="1rem" className="stat-icon" />
                                 {formatarMoeda(massagem.valorCentavos)}
                             </span>
                         </div>

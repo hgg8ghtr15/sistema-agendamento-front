@@ -7,7 +7,7 @@ import { Botao } from '../components/ui/Botao';
 import { Layout } from '../components/layout/Layout';
 import { useAuth } from '../hooks/useAuth';
 import { Icon } from '@mdi/react';
-import { mdiArrowLeft, mdiClock, mdiCurrencyUsd, mdiContentSave } from '@mdi/js';
+import { mdiArrowLeft, mdiClock, mdiContentSave, mdiCurrencyBrl } from '@mdi/js';
 import { YoutubeThumbnail } from '../components/massagens/YoutubeThumbnail';
 
 export function NovaMassagemPage() {
@@ -143,7 +143,7 @@ export function NovaMassagemPage() {
                         <div className="form-field">
                             <label htmlFor="valorReais">Valor (R$)</label>
                             <div className="input-with-icon">
-                                <Icon path={mdiCurrencyUsd} size="1.25rem" className="input-icon" />
+                                <Icon path={mdiCurrencyBrl} size="1.25rem" className="input-icon" />
                                 <input
                                     id="valorReais"
                                     type="number"

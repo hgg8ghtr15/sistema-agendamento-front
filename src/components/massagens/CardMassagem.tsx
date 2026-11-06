@@ -5,7 +5,7 @@ import { formatarDuracao } from '../../utils/formatarDuracao';
 import { YoutubeThumbnail } from './YoutubeThumbnail';
 import { useAuth } from '../../hooks/useAuth';
 import { Icon } from '@mdi/react';
-import { mdiEye, mdiPencil, mdiClock, mdiCurrencyUsd, mdiAccountGroup } from '@mdi/js';
+import { mdiEye, mdiPencil, mdiClock, mdiAccountGroup, mdiCurrencyBrl } from '@mdi/js';
 
 interface CardMassagemProps {
     massagem: Massagem;
@@ -39,7 +39,7 @@ export function CardMassagem({ massagem }: CardMassagemProps) {
                     {formatarDuracao(massagem.duracaoMinutos)}
                 </span>
                 <span className="meta-item">
-                    <Icon path={mdiCurrencyUsd} size="1rem" className="meta-icon" />
+                    <Icon path={mdiCurrencyBrl} size="1rem" className="meta-icon" />
                     {formatarMoeda(massagem.valorCentavos)}
                 </span>
                 <span className="meta-item">

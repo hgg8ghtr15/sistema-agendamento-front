@@ -15,7 +15,7 @@ import { ToastSucesso } from '../components/ui/ToastSucesso';
 import { YoutubeThumbnail } from '../components/massagens/YoutubeThumbnail';
 import { useAuth } from '../hooks/useAuth';
 import { Icon } from '@mdi/react';
-import { mdiArrowLeft, mdiContentSave, mdiClose, mdiClock, mdiCurrencyUsd, mdiPlus, mdiDeleteOutline } from '@mdi/js';
+import { mdiArrowLeft, mdiContentSave, mdiClose, mdiClock, mdiPlus, mdiDeleteOutline, mdiCurrencyBrl } from '@mdi/js';
 
 export function EditarMassagemPage() {
     const { id } = useParams<{ id: string }>();
@@ -284,7 +284,7 @@ export function EditarMassagemPage() {
                         <div className="form-field">
                             <label htmlFor="valorCentavos">Valor (centavos)</label>
                             <div className="input-with-icon">
-                                <Icon path={mdiCurrencyUsd} size="1.25rem" className="input-icon" />
+                                <Icon path={mdiCurrencyBrl} size="1.25rem" className="input-icon" />
                                 <input
                                     id="valorCentavos"
                                     type="number"
