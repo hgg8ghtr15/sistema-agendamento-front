@@ -11,6 +11,11 @@ export interface CriarMaterialDto {
     descricao?: string;
 }
 
+export interface AtualizarMaterialDto {
+    nome?: string;
+    descricao?: string;
+}
+
 // Um item de material dentro da ficha de uma massagem
 // (quantidade e unidade variam por massagem)
 export interface ItemMaterialMassagem {
@@ -44,6 +49,7 @@ export interface Massagem {
     descricao: string;
     duracaoMinutos: number;
     valorCentavos: number;  // valor em centavos; use formatarMoeda() para exibir
+    youtubeUrl?: string | null;
     ativo: boolean;
     materiais: ItemMaterialMassagem[];
     massagistas: MassagemVinculo[];
@@ -57,6 +63,7 @@ export interface CriarMassagemDto {
     descricao: string;
     duracaoMinutos: number;
     valorCentavos: number;
+    youtubeUrl?: string;
 }
 
 // Dados enviados para atualizar (todos opcionais)
@@ -65,4 +72,5 @@ export interface AtualizarMassagemDto {
     descricao?: string;
     duracaoMinutos?: number;
     valorCentavos?: number;
+    youtubeUrl?: string | null;
 }

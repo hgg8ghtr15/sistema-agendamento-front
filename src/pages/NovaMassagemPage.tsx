@@ -8,6 +8,7 @@ import { Layout } from '../components/layout/Layout';
 import { useAuth } from '../hooks/useAuth';
 import { Icon } from '@mdi/react';
 import { mdiArrowLeft, mdiClock, mdiCurrencyUsd, mdiContentSave } from '@mdi/js';
+import { YoutubeThumbnail } from '../components/massagens/YoutubeThumbnail';
 
 export function NovaMassagemPage() {
     const { eAdmin } = useAuth();
@@ -16,6 +17,7 @@ export function NovaMassagemPage() {
     const [descricao, setDescricao] = useState('');
     const [duracaoMinutos, setDuracaoMinutos] = useState('');
     const [valorReais, setValorReais] = useState('');
+    const [youtubeUrl, setYoutubeUrl] = useState('');
     const [erro, setErro] = useState<string | null>(null);
     const [salvando, setSalvando] = useState(false);
 
@@ -43,6 +45,7 @@ export function NovaMassagemPage() {
             descricao: descricao.trim(),
             duracaoMinutos: duracao,
             valorCentavos: Math.round(valor * 100),
+            ...(youtubeUrl.trim() ? { youtubeUrl: youtubeUrl.trim() } : {}),
         };
 
         setSalvando(true);
@@ -102,6 +105,22 @@ export function NovaMassagemPage() {
                             onChange={(evento) => setDescricao(evento.target.value)}
                             required
                         />
+                    </div>
+
+                    <div className="form-field">
+                        <label htmlFor="youtubeUrl">Link do YouTube (opcional)</label>
+                        <input
+                            id="youtubeUrl"
+                            type="url"
+                            maxLength={500}
+                            placeholder="https://www.youtube.com/watch?v=..."
+                            value={youtubeUrl}
+                            onChange={(evento) => setYoutubeUrl(evento.target.value)}
+                        />
+                        <p className="field-hint">O vídeo será exibido na miniatura do catálogo e nos detalhes da massagem.</p>
+                        {youtubeUrl && (
+                            <YoutubeThumbnail url={youtubeUrl} alt="Prévia do vídeo de apresentação" />
+                        )}
                     </div>
 
                     <div className="form-row">

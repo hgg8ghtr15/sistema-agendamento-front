@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import type { Massagem } from '../../types/massagem';
 import { formatarMoeda } from '../../utils/formatarMoeda';
 import { formatarDuracao } from '../../utils/formatarDuracao';
+import { YoutubeThumbnail } from './YoutubeThumbnail';
 import { useAuth } from '../../hooks/useAuth';
 import { Icon } from '@mdi/react';
 import { mdiEye, mdiPencil, mdiClock, mdiCurrencyUsd, mdiAccountGroup } from '@mdi/js';
@@ -15,12 +16,22 @@ export function CardMassagem({ massagem }: CardMassagemProps) {
 
     return (
         <article className="massage-card">
-            <span className="massage-card-mark" aria-hidden="true">✦</span>
+            {/* <span className="massage-card-mark" aria-hidden="true">✦</span> */}
             <h2>{massagem.nome}</h2>
 
             <p className="massage-card-description">
                 {massagem.descricao}
             </p>
+
+            {massagem.youtubeUrl && (
+                <Link
+                    to={`/massagens/${massagem.id}`}
+                    className="massage-card-video"
+                    aria-label={`Assistir apresentação de ${massagem.nome}`}
+                >
+                    <YoutubeThumbnail url={massagem.youtubeUrl} alt={`Vídeo de apresentação de ${massagem.nome}`} />
+                </Link>
+            )}
 
             <div className="massage-meta">
                 <span className="meta-item">

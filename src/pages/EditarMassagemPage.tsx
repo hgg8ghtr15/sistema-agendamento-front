@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import {
     buscarMassagem,
@@ -11,6 +11,8 @@ import { Layout } from '../components/layout/Layout';
 import { Carregando } from '../components/ui/Carregando';
 import { Aviso } from '../components/ui/Aviso';
 import { Botao } from '../components/ui/Botao';
+import { ToastSucesso } from '../components/ui/ToastSucesso';
+import { YoutubeThumbnail } from '../components/massagens/YoutubeThumbnail';
 import { useAuth } from '../hooks/useAuth';
 import { Icon } from '@mdi/react';
 import { mdiArrowLeft, mdiContentSave, mdiClose, mdiClock, mdiCurrencyUsd, mdiPlus, mdiDeleteOutline } from '@mdi/js';
@@ -27,12 +29,15 @@ export function EditarMassagemPage() {
     const [erro, setErro] = useState<string | null>(null);
     const [salvando, setSalvando] = useState(false);
     const [salvandoMateriais, setSalvandoMateriais] = useState(false);
+    const [notificacao, setNotificacao] = useState<{ id: number; mensagem: string } | null>(null);
+    const proximoIdNotificacao = useRef(0);
 
     const [formData, setFormData] = useState<AtualizarMassagemDto>({
         nome: '',
         descricao: '',
         duracaoMinutos: 0,
         valorCentavos: 0,
+        youtubeUrl: '',
     });
 
     useEffect(() => {
@@ -58,6 +63,7 @@ export function EditarMassagemPage() {
                     descricao: dados.descricao,
                     duracaoMinutos: dados.duracaoMinutos,
                     valorCentavos: dados.valorCentavos,
+                    youtubeUrl: dados.youtubeUrl ?? '',
                 });
             } catch (err: unknown) {
                 if (err && typeof err === 'object' && 'response' in err) {
@@ -98,8 +104,12 @@ export function EditarMassagemPage() {
         setSalvando(true);
 
         try {
-            await atualizarMassagem(parseInt(id, 10), formData);
-            navigate(`/massagens/${id}`);
+            const atualizada = await atualizarMassagem(parseInt(id, 10), formData);
+            setMassagem(atualizada);
+            setNotificacao({
+                id: ++proximoIdNotificacao.current,
+                mensagem: 'Massagem salva com sucesso.',
+            });
         } catch (err: unknown) {
             if (err && typeof err === 'object' && 'response' in err) {
                 const axiosErr = err as { response?: { data?: { message?: string } } };
@@ -165,6 +175,10 @@ export function EditarMassagemPage() {
                 quantidade,
                 unidade,
             })));
+            setNotificacao({
+                id: ++proximoIdNotificacao.current,
+                mensagem: 'Materiais salvos com sucesso.',
+            });
         } catch (err: unknown) {
             if (err && typeof err === 'object' && 'response' in err) {
                 const axiosErr = err as { response?: { data?: { message?: string | string[] } } };
@@ -188,15 +202,27 @@ export function EditarMassagemPage() {
 
     return (
         <Layout>
+            {notificacao && (
+                <ToastSucesso
+                    key={notificacao.id}
+                    mensagem={notificacao.mensagem}
+                    onFechar={() => setNotificacao(null)}
+                />
+            )}
             {erro && <Aviso tipo="erro" mensagem={erro} />}
 
             <article className="detail-panel">
                 <div className="detail-heading">
                     <div className="detail-title-row">
-                        <Link className="detail-back-link" to="/massagens" aria-label="Voltar para massagens">
+                        <Link className="detail-back-link detail-back-link--prominent" to="/massagens">
                             <Icon path={mdiArrowLeft} size="1.25rem" className="back-icon" />
+                            <span>Voltar</span>
                         </Link>
                         <span className="eyebrow">Editar massagem</span>
+                    </div>
+                    <div>
+                        <h1>Massagem</h1>
+                        <p>Gerencie as informações das massagens.</p>
                     </div>
                 </div>
 
@@ -221,6 +247,22 @@ export function EditarMassagemPage() {
                             rows={4}
                             required
                         />
+                    </div>
+
+                    <div className="form-field">
+                        <label htmlFor="youtubeUrl">Link do YouTube (opcional)</label>
+                        <input
+                            id="youtubeUrl"
+                            type="url"
+                            maxLength={500}
+                            placeholder="https://www.youtube.com/watch?v=..."
+                            value={formData.youtubeUrl ?? ''}
+                            onChange={(evento) => handleChange('youtubeUrl', evento.target.value)}
+                        />
+                        <p className="field-hint">Deixe vazio para remover o vídeo da massagem.</p>
+                        {formData.youtubeUrl && (
+                            <YoutubeThumbnail url={formData.youtubeUrl} alt="Prévia do vídeo de apresentação" />
+                        )}
                     </div>
 
                     <div className="form-row">

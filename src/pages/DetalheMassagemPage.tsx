@@ -7,6 +7,7 @@ import { Carregando } from '../components/ui/Carregando';
 import { Aviso } from '../components/ui/Aviso';
 import { formatarMoeda } from '../utils/formatarMoeda';
 import { formatarDuracao } from '../utils/formatarDuracao';
+import { obterYoutubeEmbedUrl } from '../utils/youtube';
 import { Icon } from '@mdi/react';
 import { mdiArrowLeft, mdiClock, mdiCurrencyUsd, mdiAccountGroup } from '@mdi/js';
 
@@ -46,6 +47,10 @@ export function DetalheMassagemPage() {
         buscar();
     }, [id]); // O efeito roda novamente se o `id` da URL mudar
 
+    const youtubeEmbedUrl = massagem?.youtubeUrl
+        ? obterYoutubeEmbedUrl(massagem.youtubeUrl)
+        : null;
+
     return (
         <Layout>
             {carregando && <Carregando />}
@@ -55,14 +60,30 @@ export function DetalheMassagemPage() {
                 <article className="detail-panel">
                     <div className="detail-heading">
                         <div className="detail-title-row">
-                            <Link className="detail-back-link" to="/massagens" aria-label="Voltar para massagens">
+                            <Link className="detail-back-link detail-back-link--prominent" to="/massagens">
                                 <Icon path={mdiArrowLeft} size="1.25rem" className="back-icon" />
+                                <span>Voltar</span>
                             </Link>
                             <span className="eyebrow">Detalhes da experiência</span>
                         </div>
                         <h1>{massagem.nome}</h1>
                         <p className="detail-description">{massagem.descricao}</p>
                     </div>
+
+                    {youtubeEmbedUrl && (
+                        <section className="detail-video-section" aria-label="Vídeo de apresentação">
+                            <h2>Conheça esta massagem</h2>
+                            <div className="youtube-embed">
+                                <iframe
+                                    src={youtubeEmbedUrl}
+                                    title={`Vídeo de apresentação de ${massagem.nome}`}
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                    referrerPolicy="strict-origin-when-cross-origin"
+                                    allowFullScreen
+                                />
+                            </div>
+                        </section>
+                    )}
 
                     <div className="detail-stats">
                         <div className="detail-stat">

@@ -1,13 +1,27 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon } from '@mdi/react';
-import { mdiArrowLeft, mdiArchiveArrowUp, mdiArchiveArrowDown, mdiPlus } from '@mdi/js';
+import {
+    mdiArrowLeft,
+    mdiArchiveArrowUp,
+    mdiArchiveArrowDown,
+    mdiPlus,
+    mdiPencil,
+    mdiClose,
+    mdiContentSave,
+} from '@mdi/js';
 import { Aviso } from '../components/ui/Aviso';
 import { Botao } from '../components/ui/Botao';
 import { Carregando } from '../components/ui/Carregando';
 import { Layout } from '../components/layout/Layout';
+import { ToastSucesso } from '../components/ui/ToastSucesso';
 import { useAuth } from '../hooks/useAuth';
-import { criarMaterial, definirMaterialAtivo, listarMateriais } from '../api/massagens';
+import {
+    atualizarMaterial,
+    criarMaterial,
+    definirMaterialAtivo,
+    listarMateriais,
+} from '../api/massagens';
 import type { Material } from '../types/massagem';
 
 export function MateriaisPage() {
@@ -15,10 +29,13 @@ export function MateriaisPage() {
     const [materiais, setMateriais] = useState<Material[]>([]);
     const [nome, setNome] = useState('');
     const [descricao, setDescricao] = useState('');
+    const [materialEmEdicao, setMaterialEmEdicao] = useState<Material | null>(null);
     const [carregando, setCarregando] = useState(true);
     const [salvando, setSalvando] = useState(false);
     const [materialEmAtualizacao, setMaterialEmAtualizacao] = useState<number | null>(null);
     const [erro, setErro] = useState<string | null>(null);
+    const [notificacao, setNotificacao] = useState<{ id: number; mensagem: string } | null>(null);
+    const proximoIdNotificacao = useRef(0);
 
     useEffect(() => {
         if (!eAdmin) return;
@@ -50,24 +67,59 @@ export function MateriaisPage() {
         setSalvando(true);
 
         try {
-            const material = await criarMaterial({
-                nome: nome.trim(),
-                ...(descricao.trim() ? { descricao: descricao.trim() } : {}),
-            });
-            setMateriais((atuais) => [...atuais, material].sort((a, b) => a.nome.localeCompare(b.nome)));
+            if (materialEmEdicao) {
+                const atualizado = await atualizarMaterial(materialEmEdicao.id, {
+                    nome: nome.trim(),
+                    descricao: descricao.trim(),
+                });
+                setMateriais((atuais) => atuais
+                    .map((item) => item.id === atualizado.id ? atualizado : item)
+                    .sort((a, b) => a.nome.localeCompare(b.nome)));
+                setNotificacao({
+                    id: ++proximoIdNotificacao.current,
+                    mensagem: 'Material atualizado com sucesso.',
+                });
+                setMaterialEmEdicao(null);
+            } else {
+                const material = await criarMaterial({
+                    nome: nome.trim(),
+                    ...(descricao.trim() ? { descricao: descricao.trim() } : {}),
+                });
+                setMateriais((atuais) => [...atuais, material].sort((a, b) => a.nome.localeCompare(b.nome)));
+                setNotificacao({
+                    id: ++proximoIdNotificacao.current,
+                    mensagem: 'Material cadastrado com sucesso.',
+                });
+            }
             setNome('');
             setDescricao('');
         } catch (err: unknown) {
             if (err && typeof err === 'object' && 'response' in err) {
                 const axiosErr = err as { response?: { data?: { message?: string | string[] } } };
                 const mensagem = axiosErr.response?.data?.message;
-                setErro(Array.isArray(mensagem) ? mensagem.join(' ') : mensagem ?? 'Não foi possível cadastrar o material.');
+                setErro(Array.isArray(mensagem)
+                    ? mensagem.join(' ')
+                    : mensagem ?? `Não foi possível ${materialEmEdicao ? 'atualizar' : 'cadastrar'} o material.`);
             } else {
-                setErro('Não foi possível cadastrar o material.');
+                setErro(`Não foi possível ${materialEmEdicao ? 'atualizar' : 'cadastrar'} o material.`);
             }
         } finally {
             setSalvando(false);
         }
+    }
+
+    function iniciarEdicao(material: Material) {
+        setErro(null);
+        setMaterialEmEdicao(material);
+        setNome(material.nome);
+        setDescricao(material.descricao ?? '');
+    }
+
+    function cancelarEdicao() {
+        setMaterialEmEdicao(null);
+        setNome('');
+        setDescricao('');
+        setErro(null);
     }
 
     async function alternarAtivo(material: Material) {
@@ -92,26 +144,38 @@ export function MateriaisPage() {
 
     return (
         <Layout>
+            {notificacao && (
+                <ToastSucesso
+                    key={notificacao.id}
+                    mensagem={notificacao.mensagem}
+                    onFechar={() => setNotificacao(null)}
+                />
+            )}
             <section className="materials-page">
                 <header className="materials-heading">
-                    <Link className="detail-back-link" to="/massagens" aria-label="Voltar para massagens">
-                        <Icon path={mdiArrowLeft} size="1.25rem" className="back-icon" />
-                    </Link>
-                    <div>
+                    <div className="detail-title-row">
+                        <Link className="detail-back-link detail-back-link--prominent" to="/massagens">
+                            <Icon path={mdiArrowLeft} size="1.25rem" className="back-icon" />
+                            <span>Voltar</span>
+                        </Link>
                         <span className="eyebrow">Administração</span>
-                        <h1>Materiais</h1>
-                        <p>Cadastre e gerencie os materiais usados nas experiências.</p>
                     </div>
                 </header>
 
                 {erro && <Aviso tipo="erro" mensagem={erro} />}
 
+                <div>
+                    <h1>Materiais</h1>
+                    <p>Cadastre e gerencie os materiais usados nas experiências.</p>
+                </div>
                 <div className="materials-layout">
                     <form className="materials-form" onSubmit={handleSubmit}>
                         <div>
-                            <span className="eyebrow">Novo item</span>
-                            <h2>Cadastrar material</h2>
-                            <p>Os materiais ativos podem ser associados às massagens.</p>
+                            <span className="eyebrow">{materialEmEdicao ? 'Editando material' : 'Novo item'}</span>
+                            <h2>{materialEmEdicao ? 'Editar material' : 'Cadastrar material'}</h2>
+                            <p>{materialEmEdicao
+                                ? 'Atualize o nome ou a descrição deste material.'
+                                : 'Os materiais ativos podem ser associados às massagens.'}</p>
                         </div>
                         <div className="form-field">
                             <label htmlFor="material-nome">Nome</label>
@@ -135,10 +199,24 @@ export function MateriaisPage() {
                                 onChange={(evento) => setDescricao(evento.target.value)}
                             />
                         </div>
-                        <Botao type="submit" disabled={salvando}>
-                            <Icon path={mdiPlus} size="1rem" className="btn-icon" />
-                            {salvando ? 'Cadastrando...' : 'Cadastrar material'}
-                        </Botao>
+                        <div className="form-actions">
+                            {materialEmEdicao && (
+                                <Botao type="button" variante="secundario" onClick={cancelarEdicao} disabled={salvando}>
+                                    <Icon path={mdiClose} size="1rem" className="btn-icon" />
+                                    Cancelar
+                                </Botao>
+                            )}
+                            <Botao type="submit" disabled={salvando}>
+                                <Icon
+                                    path={materialEmEdicao ? mdiContentSave : mdiPlus}
+                                    size="1rem"
+                                    className="btn-icon"
+                                />
+                                {salvando
+                                    ? materialEmEdicao ? 'Salvando...' : 'Cadastrando...'
+                                    : materialEmEdicao ? 'Salvar alterações' : 'Cadastrar material'}
+                            </Botao>
+                        </div>
                     </form>
 
                     <section className="materials-list-panel">
@@ -167,20 +245,30 @@ export function MateriaisPage() {
                                             </div>
                                             {material.descricao && <p>{material.descricao}</p>}
                                         </div>
-                                        <Botao
-                                            variante="secundario"
-                                            disabled={materialEmAtualizacao === material.id}
-                                            onClick={() => alternarAtivo(material)}
-                                        >
-                                            <Icon
-                                                path={material.ativo ? mdiArchiveArrowDown : mdiArchiveArrowUp}
-                                                size="1rem"
-                                                className="btn-icon"
-                                            />
-                                            {materialEmAtualizacao === material.id
-                                                ? 'Atualizando...'
-                                                : material.ativo ? 'Arquivar' : 'Reativar'}
-                                        </Botao>
+                                        <div className="material-actions">
+                                            <Botao
+                                                variante="secundario"
+                                                disabled={salvando || materialEmAtualizacao === material.id}
+                                                onClick={() => iniciarEdicao(material)}
+                                            >
+                                                <Icon path={mdiPencil} size="1rem" className="btn-icon" />
+                                                Editar
+                                            </Botao>
+                                            <Botao
+                                                variante="secundario"
+                                                disabled={materialEmAtualizacao === material.id}
+                                                onClick={() => alternarAtivo(material)}
+                                            >
+                                                <Icon
+                                                    path={material.ativo ? mdiArchiveArrowDown : mdiArchiveArrowUp}
+                                                    size="1rem"
+                                                    className="btn-icon"
+                                                />
+                                                {materialEmAtualizacao === material.id
+                                                    ? 'Atualizando...'
+                                                    : material.ativo ? 'Arquivar' : 'Reativar'}
+                                            </Botao>
+                                        </div>
                                     </li>
                                 ))}
                             </ul>

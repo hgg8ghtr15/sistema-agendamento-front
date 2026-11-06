@@ -4,6 +4,7 @@ import type {
     Massagem,
     Material,
     CriarMaterialDto,
+    AtualizarMaterialDto,
     CriarMassagemDto,
     AtualizarMassagemDto,
     MaterialMassagemDto,
@@ -49,6 +50,14 @@ export async function listarMateriais(): Promise<Material[]> {
 
 export async function criarMaterial(dados: CriarMaterialDto): Promise<Material> {
     const resposta = await api.post<Material>('/materiais', dados);
+    return resposta.data;
+}
+
+export async function atualizarMaterial(
+    id: number,
+    dados: AtualizarMaterialDto,
+): Promise<Material> {
+    const resposta = await api.patch<Material>(`/materiais/${id}`, dados);
     return resposta.data;
 }
 
