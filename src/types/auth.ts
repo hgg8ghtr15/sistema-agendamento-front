@@ -6,7 +6,8 @@ export interface Usuario {
     id: number;
     nome: string;
     email: string;
-    perfil: Perfil;
+    perfis: Perfil[];
+    perfil?: Perfil;
 }
 
 // Resposta que o back-end retorna ao fazer login

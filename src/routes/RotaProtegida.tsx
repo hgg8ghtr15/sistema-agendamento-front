@@ -16,7 +16,7 @@ export function RotaProtegida({ perfilExigido }: RotaProtegidaProps) {
     }
 
     // Perfil específico exigido e usuário não tem esse perfil
-    if (perfilExigido && sessao?.usuario.perfil !== perfilExigido) {
+    if (perfilExigido && !sessao?.usuario.perfis.includes(perfilExigido)) {
         return <Navigate to="/" replace />;
     }
 

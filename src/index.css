@@ -1314,3 +1314,172 @@ p {
     transition-duration: 0.01ms !important;
   }
 }
+
+.users-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.user-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1.2rem;
+  border: 1px solid var(--color-line);
+  border-radius: 14px;
+  background: var(--color-paper);
+}
+
+.user-filters .form-field {
+  min-width: 0;
+  margin: 0;
+}
+
+.user-filters select[multiple] {
+  min-height: 7rem;
+}
+
+.user-card {
+  padding: 1.4rem;
+}
+
+.user-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.user-card-heading h2 {
+  margin-bottom: 0.3rem;
+  font-size: 1.3rem;
+}
+
+.user-card-heading p,
+.user-created {
+  margin: 0;
+  color: var(--color-copy);
+}
+
+.user-created {
+  font-size: 0.85rem;
+}
+
+.user-roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem 1.25rem;
+  margin: 1.2rem 0;
+  padding: 1rem;
+  border: 1px solid var(--color-line);
+  border-radius: 12px;
+}
+
+.user-roles legend {
+  padding: 0 0.4rem;
+  color: var(--color-copy);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.user-roles label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--color-ink);
+}
+
+.user-roles input {
+  accent-color: var(--color-green);
+}
+
+.therapist-editor {
+  margin-top: 2rem;
+}
+
+.therapist-assignment {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-top: 0.8rem;
+  padding: 0.8rem;
+  border: 1px solid var(--color-line);
+  border-radius: 10px;
+  background: #fafaf6;
+}
+
+.therapist-assignment .form-field {
+  flex: 1;
+  margin: 0;
+}
+
+.therapist-assignment--linked {
+  display: flex;
+  justify-content: space-between;
+  /* grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); */
+  align-items: center;
+}
+
+.therapist-assignment--linked > span {
+  grid-column: 2;
+  text-align: left;
+}
+
+.therapist-assignment--linked > .button {
+  grid-column: 3;
+  justify-self: end;
+}
+
+.therapist-linked-list {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0.75rem 0 1rem;
+}
+
+.therapist-linked-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--color-line);
+  border-radius: 10px;
+  background: #fafaf6;
+}
+
+.therapist-linked-item > span {
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+.therapist-linked-item > .button {
+  flex: 0 0 auto;
+}
+
+.created-massage-link {
+  margin: -0.5rem 0 1.25rem;
+}
+
+@media (max-width: 720px) {
+  .user-card-heading,
+  .therapist-assignment {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .therapist-assignment--linked {
+    display: flex;
+    align-items: center;
+    text-align: left;
+  }
+
+  .therapist-linked-item {
+    flex-direction: row;
+  }
+
+  .user-filters {
+    grid-template-columns: 1fr;
+  }
+}

@@ -44,7 +44,9 @@ export function CardMassagem({ massagem }: CardMassagemProps) {
                 </span>
                 <span className="meta-item">
                     <Icon path={mdiAccountGroup} size="1rem" className="meta-icon" />
-                    {massagem.massagistas.length} massagista(s)
+                    {massagem.massagistas.length > 0
+                        ? massagem.massagistas.map(({ usuario }) => usuario.nome).join(', ')
+                        : 'Sem massagista'}
                 </span>
             </div>
 

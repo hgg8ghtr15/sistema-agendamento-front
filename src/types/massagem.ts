@@ -35,7 +35,7 @@ export interface MassistaResumo {
     id: number;
     nome: string;
     email: string;
-    perfil: string;
+    perfis: string[];
 }
 
 export interface MassagemVinculo {

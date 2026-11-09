@@ -131,6 +131,7 @@ export function DetalheMassagemPage() {
                             </section>
                         )}
                     </div>
+
                 </article>
             )}
         </Layout>

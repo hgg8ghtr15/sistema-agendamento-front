@@ -73,3 +73,11 @@ export async function substituirMateriaisMassagem(
     const resposta = await api.put<Massagem>(`/massagens/${massagemId}/materiais`, { materiais });
     return resposta.data;
 }
+
+export async function vincularMassagista(massagemId: number, usuarioId: number): Promise<void> {
+    await api.put(`/massagens/${massagemId}/massagistas/${usuarioId}`);
+}
+
+export async function desvincularMassagista(massagemId: number, usuarioId: number): Promise<void> {
+    await api.delete(`/massagens/${massagemId}/massagistas/${usuarioId}`);
+}

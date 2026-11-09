@@ -1,6 +1,8 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { RotaProtegida } from './RotaProtegida';
 import { LoginPage } from '../pages/LoginPage';
+import { CadastroPage } from '../pages/CadastroPage';
+import { UsuariosPage } from '../pages/UsuariosPage';
 import { MassagensPage } from '../pages/MassagensPage';
 import { DetalheMassagemPage } from '../pages/DetalheMassagemPage';
 import { EditarMassagemPage } from '../pages/EditarMassagemPage';
@@ -13,6 +15,7 @@ export function AppRoutes() {
         <Routes>
             {/* Rota pública: qualquer um pode acessar */}
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/cadastro" element={<CadastroPage />} />
 
             {/* Rotas protegidas: exigem login */}
             {/* RotaProtegida sem `perfilExigido` aceita qualquer usuário autenticado */}
@@ -21,6 +24,7 @@ export function AppRoutes() {
                 <Route path="/" element={<Navigate to="/massagens" replace />} />
                 <Route path="/massagens" element={<MassagensPage />} />
                 <Route path="/materiais" element={<MateriaisPage />} />
+                <Route path="/usuarios" element={<UsuariosPage />} />
                 <Route path="/massagens/nova" element={<NovaMassagemPage />} />
                 {/* :id é um parâmetro dinâmico — pode ser qualquer número */}
                 <Route path="/massagens/:id" element={<DetalheMassagemPage />} />

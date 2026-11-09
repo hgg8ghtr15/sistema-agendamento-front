@@ -32,6 +32,7 @@ export function Header() {
                         </span>
                         <Link to="/massagens">Massagens</Link>
                         {eAdmin && <Link to="/materiais">Materiais</Link>}
+                        {eAdmin && <Link to="/usuarios">Usuários</Link>}
                         <Botao variante="secundario" onClick={handleLogout}>
                             Sair
                         </Botao>

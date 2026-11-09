@@ -5,7 +5,10 @@ import {
     atualizarMassagem,
     listarMateriais,
     substituirMateriaisMassagem,
+    vincularMassagista,
+    desvincularMassagista,
 } from '../api/massagens';
+import { listarUsuarios, type UsuarioGerenciado } from '../api/usuarios';
 import type { Massagem, AtualizarMassagemDto, Material, MaterialMassagemDto } from '../types/massagem';
 import { Layout } from '../components/layout/Layout';
 import { Carregando } from '../components/ui/Carregando';
@@ -24,6 +27,11 @@ export function EditarMassagemPage() {
 
     const [massagem, setMassagem] = useState<Massagem | null>(null);
     const [materiais, setMateriais] = useState<Material[]>([]);
+    const [massagistas, setMassagistas] = useState<UsuarioGerenciado[]>([]);
+    const [massagistaResponsavelId, setMassagistaResponsavelId] = useState('');
+    const [responsavelAlterado, setResponsavelAlterado] = useState(false);
+    const [erroMassagistas, setErroMassagistas] = useState<string | null>(null);
+    const [desvinculandoMassagista, setDesvinculandoMassagista] = useState(false);
     const [fichaMateriais, setFichaMateriais] = useState<MaterialMassagemDto[]>([]);
     const [carregando, setCarregando] = useState(true);
     const [erro, setErro] = useState<string | null>(null);
@@ -53,6 +61,9 @@ export function EditarMassagemPage() {
                 ]);
                 setMassagem(dados);
                 setMateriais(catalogoMateriais);
+                setMassagistaResponsavelId(
+                    dados.massagistas[0] ? String(dados.massagistas[0].usuario.id) : '',
+                );
                 setFichaMateriais(dados.materiais.map(({ material, quantidade, unidade }) => ({
                     materialId: material.id,
                     quantidade,
@@ -84,6 +95,18 @@ export function EditarMassagemPage() {
         buscar();
     }, [id, eAdmin]);
 
+    useEffect(() => {
+        if (!eAdmin) return;
+
+        listarUsuarios()
+            .then((usuarios) => setMassagistas(
+                usuarios.filter((usuario) => usuario.perfis.includes('MASSAGISTA')),
+            ))
+            .catch(() => setErroMassagistas(
+                'Não foi possível carregar a lista de massagistas. Os demais dados da massagem ainda podem ser editados.',
+            ));
+    }, [eAdmin]);
+
     if (!eAdmin) {
         return (
             <Layout>
@@ -96,6 +119,52 @@ export function EditarMassagemPage() {
         setFormData((prev) => ({ ...prev, [campo]: valor }));
     }
 
+    async function handleDesvincularMassagista(usuarioId: number, email: string) {
+        if (!id || !massagem) return;
+        if (!window.confirm(`Deseja remover ${email} desta massagem?`)) return;
+
+        setErroMassagistas(null);
+        setDesvinculandoMassagista(true);
+        try {
+            await desvincularMassagista(Number(id), usuarioId);
+
+            const atualizada = await buscarMassagem(Number(id));
+            setMassagem(atualizada);
+            if (massagistaResponsavelId === String(usuarioId)) {
+                setMassagistaResponsavelId('');
+                setResponsavelAlterado(false);
+            }
+            setNotificacao({
+                id: ++proximoIdNotificacao.current,
+                mensagem: `${email} removido(a) da massagem.`,
+            });
+        } catch (err: unknown) {
+            try {
+                const atualizada = await buscarMassagem(Number(id));
+                setMassagem(atualizada);
+                setMassagistaResponsavelId(
+                    atualizada.massagistas[0] ? String(atualizada.massagistas[0].usuario.id) : '',
+                );
+            } catch {
+                setErroMassagistas('Não foi possível confirmar os vínculos atuais. Atualize a página antes de tentar novamente.');
+                return;
+            }
+
+            if (err && typeof err === 'object' && 'response' in err) {
+                const axiosErr = err as { response?: { data?: { message?: string | string[] } } };
+                const mensagem = axiosErr.response?.data?.message;
+                setErroMassagistas(
+                    Array.isArray(mensagem) ? mensagem.join(' ') : mensagem ??
+                    'Não foi possível desvincular a massagista.',
+                );
+            } else {
+                setErroMassagistas('Não foi possível desvincular a massagista.');
+            }
+        } finally {
+            setDesvinculandoMassagista(false);
+        }
+    }
+
     async function handleSubmit(evento: React.FormEvent) {
         evento.preventDefault();
         if (!id) return;
@@ -105,7 +174,51 @@ export function EditarMassagemPage() {
 
         try {
             const atualizada = await atualizarMassagem(parseInt(id, 10), formData);
-            setMassagem(atualizada);
+            if (responsavelAlterado && massagem) {
+                const responsavelAnteriorIds = massagem.massagistas.map(
+                    ({ usuario }) => usuario.id,
+                );
+                const responsavelId = massagistaResponsavelId
+                    ? Number(massagistaResponsavelId)
+                    : null;
+
+                try {
+                    if (responsavelId && !responsavelAnteriorIds.includes(responsavelId)) {
+                        await vincularMassagista(parseInt(id, 10), responsavelId);
+                    }
+
+                    for (const usuarioId of responsavelAnteriorIds) {
+                        if (usuarioId !== responsavelId) {
+                            await desvincularMassagista(parseInt(id, 10), usuarioId);
+                        }
+                    }
+
+                    const massagemAtualizada = await buscarMassagem(parseInt(id, 10));
+                    setMassagem(massagemAtualizada);
+                    setMassagistaResponsavelId(
+                        massagemAtualizada.massagistas[0]
+                            ? String(massagemAtualizada.massagistas[0].usuario.id)
+                            : '',
+                    );
+                    setResponsavelAlterado(false);
+                } catch (err: unknown) {
+                    setMassagem({ ...atualizada, massagistas: massagem.massagistas });
+                    if (err && typeof err === 'object' && 'response' in err) {
+                        const axiosErr = err as { response?: { data?: { message?: string | string[] } } };
+                        const mensagem = axiosErr.response?.data?.message;
+                        setErro(
+                            `Os dados da massagem foram salvos, mas não foi possível atualizar o vínculo da massagista: ${
+                                Array.isArray(mensagem) ? mensagem.join(' ') : mensagem ?? 'tente novamente.'
+                            }`,
+                        );
+                    } else {
+                        setErro('Os dados da massagem foram salvos, mas não foi possível atualizar o vínculo da massagista. Tente novamente.');
+                    }
+                    return;
+                }
+            } else {
+                setMassagem(atualizada);
+            }
             setNotificacao({
                 id: ++proximoIdNotificacao.current,
                 mensagem: 'Massagem salva com sucesso.',
@@ -264,6 +377,47 @@ export function EditarMassagemPage() {
                             <YoutubeThumbnail url={formData.youtubeUrl} alt="Prévia do vídeo de apresentação" />
                         )}
                     </div>
+
+                    <div className="form-field">
+                        <label htmlFor="massagistaResponsavel">Massagista responsável (opcional)</label>
+                        <select
+                            id="massagistaResponsavel"
+                            value={massagistaResponsavelId}
+                            onChange={(evento) => {
+                                setMassagistaResponsavelId(evento.target.value);
+                                setResponsavelAlterado(true);
+                            }}
+                        >
+                            <option value="">Sem massagista responsável</option>
+                            {massagistas.map((massagista) => (
+                                <option key={massagista.id} value={massagista.id}>
+                                    {massagista.nome} — {massagista.email}
+                                </option>
+                            ))}
+                        </select>
+                        <p className="field-hint">
+                            Escolha uma massagista e salve as alterações para vinculá-la.
+                        </p>
+                        {erroMassagistas && <Aviso tipo="erro" mensagem={erroMassagistas} />}
+                    </div>
+
+                    {(massagem?.massagistas.length ?? 0) > 0 && (
+                        <div className="therapist-linked-list" aria-label="Massagistas vinculadas">
+                            {massagem?.massagistas.map(({ usuario }) => (
+                                <div className="therapist-linked-item" key={usuario.id}>
+                                    <span>{usuario.email}</span>
+                                    <Botao
+                                        type="button"
+                                        variante="perigo"
+                                        disabled={desvinculandoMassagista || salvando}
+                                        onClick={() => void handleDesvincularMassagista(usuario.id, usuario.email)}
+                                    >
+                                        {desvinculandoMassagista ? 'Removendo...' : 'Remover'}
+                                    </Botao>
+                                </div>
+                            ))}
+                        </div>
+                    )}
 
                     <div className="form-row">
                         <div className="form-field">

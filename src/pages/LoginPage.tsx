@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { login } from '../api/auth';
 import { useAuth } from '../hooks/useAuth';
 import { Aviso } from '../components/ui/Aviso';
@@ -101,6 +101,9 @@ export function LoginPage() {
                             {carregando ? 'Entrando...' : 'Entrar na minha conta'}
                         </Botao>
                     </form>
+                    <p className="login-subtitle">
+                        Ainda não tem conta? <Link to="/cadastro">Cadastre-se</Link>
+                    </p>
                 </div>
             </section>
         </main>

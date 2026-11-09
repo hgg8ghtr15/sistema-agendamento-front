@@ -35,7 +35,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (token && usuarioString) {
             try {
                 const usuario: Usuario = JSON.parse(usuarioString);
-                setSessao({ token, usuario });
+                const perfis = usuario.perfis ?? (usuario.perfil ? [usuario.perfil] : []);
+                const usuarioAtualizado = { ...usuario, perfis };
+                setSessao({ token, usuario: usuarioAtualizado });
+                localStorage.setItem('usuario', JSON.stringify(usuarioAtualizado));
             } catch {
                 // JSON corrompido: limpa e ignora
                 localStorage.removeItem('token');
@@ -59,7 +62,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     const estaLogado = sessao !== null;
-    const eAdmin = sessao?.usuario.perfil === 'ADMIN';
+    const eAdmin = sessao?.usuario.perfis.includes('ADMIN') ?? false;
 
     return (
         // Disponibiliza os valores para todos os componentes dentro do Provider
