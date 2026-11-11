@@ -8,6 +8,9 @@ export function Header() {
     // (sem o usuário clicar em um link)
     const navigate = useNavigate();
     const { sessao, estaLogado, eAdmin, fazerLogout } = useAuth();
+    const eGestorAgendamento = sessao?.usuario.perfis.some(
+        (perfil) => perfil === 'ADMIN' || perfil === 'ADMINISTRATIVO',
+    ) ?? false;
 
     function handleLogout() {
         fazerLogout();
@@ -31,7 +34,12 @@ export function Header() {
                             Olá, {sessao?.usuario.nome}
                         </span>
                         <Link to="/massagens">Massagens</Link>
+                        <Link to="/agendamentos">Agendamentos</Link>
+                        {eGestorAgendamento && (
+                            <Link to="/gerenciamento/agendamentos">Gerenciar agenda</Link>
+                        )}
                         {eAdmin && <Link to="/materiais">Materiais</Link>}
+                        {eAdmin && <Link to="/horarios-trabalho">Horários de trabalho</Link>}
                         {eAdmin && <Link to="/usuarios">Usuários</Link>}
                         <Botao variante="secundario" onClick={handleLogout}>
                             Sair

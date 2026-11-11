@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Aviso } from '../components/ui/Aviso';
 import { Botao } from '../components/ui/Botao';
 import { Layout } from '../components/layout/Layout';
-import { ToastSucesso } from '../components/ui/ToastSucesso';
 import { listarUsuarios, atualizarPerfis, type UsuarioGerenciado } from '../api/usuarios';
 import { useAuth } from '../hooks/useAuth';
 import type { Perfil } from '../types/auth';
@@ -31,8 +30,7 @@ export function UsuariosPage() {
     const [carregando, setCarregando] = useState(true);
     const [salvandoId, setSalvandoId] = useState<number | null>(null);
     const [erro, setErro] = useState<string | null>(null);
-    const [notificacao, setNotificacao] = useState<{ id: number; mensagem: string } | null>(null);
-    const proximoIdNotificacao = useRef(0);
+    const [sucesso, setSucesso] = useState<string | null>(null);
     const [termoBusca, setTermoBusca] = useState('');
     const [perfisFiltro, setPerfisFiltro] = useState<Perfil[]>([]);
 
@@ -61,7 +59,7 @@ export function UsuariosPage() {
 
     function alternarPerfil(usuarioId: number, perfil: Perfil) {
         setErro(null);
-        setNotificacao(null);
+        setSucesso(null);
         setUsuarios((atuais) => atuais.map((usuario) => {
             if (usuario.id !== usuarioId) return usuario;
             const possuiPerfil = usuario.perfis.includes(perfil);
@@ -79,7 +77,7 @@ export function UsuariosPage() {
         }
 
         setErro(null);
-        setNotificacao(null);
+        setSucesso(null);
         setSalvandoId(usuario.id);
         try {
             const atualizado = await atualizarPerfis(usuario.id, usuario.perfis);
@@ -87,18 +85,13 @@ export function UsuariosPage() {
             if (sessao?.usuario.id === atualizado.id) {
                 fazerLogin(sessao.token, atualizado);
             }
-            setNotificacao({
-                id: ++proximoIdNotificacao.current,
-                mensagem: `Perfis de ${atualizado.nome} atualizados.`,
-            });
+            setSucesso(`Perfis de ${atualizado.nome} atualizados.`);
         } catch (err: unknown) {
             setErro(mensagemErro(err));
         } finally {
             setSalvandoId(null);
         }
     }
-
-    const fecharNotificacao = useCallback(() => setNotificacao(null), []);
 
     if (!eAdmin) {
         return (
@@ -110,13 +103,6 @@ export function UsuariosPage() {
 
     return (
         <Layout>
-            {notificacao && (
-                <ToastSucesso
-                    key={notificacao.id}
-                    mensagem={notificacao.mensagem}
-                    onFechar={fecharNotificacao}
-                />
-            )}
             <section className="page-intro">
                 <span className="eyebrow">Administração</span>
                 <h1>Usuários e perfis</h1>
@@ -124,6 +110,7 @@ export function UsuariosPage() {
             </section>
 
             {erro && <Aviso tipo="erro" mensagem={erro} />}
+            {sucesso && <Aviso tipo="sucesso" mensagem={sucesso} />}
             {carregando && <Aviso tipo="info" mensagem="Carregando usuários..." />}
             {!carregando && usuarios.length === 0 && !erro && (
                 <Aviso tipo="info" mensagem="Nenhum usuário cadastrado." />

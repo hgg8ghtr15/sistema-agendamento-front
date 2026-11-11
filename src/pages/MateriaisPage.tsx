@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon } from '@mdi/react';
 import {
@@ -14,7 +14,6 @@ import { Aviso } from '../components/ui/Aviso';
 import { Botao } from '../components/ui/Botao';
 import { Carregando } from '../components/ui/Carregando';
 import { Layout } from '../components/layout/Layout';
-import { ToastSucesso } from '../components/ui/ToastSucesso';
 import { useAuth } from '../hooks/useAuth';
 import {
     atualizarMaterial,
@@ -34,8 +33,7 @@ export function MateriaisPage() {
     const [salvando, setSalvando] = useState(false);
     const [materialEmAtualizacao, setMaterialEmAtualizacao] = useState<number | null>(null);
     const [erro, setErro] = useState<string | null>(null);
-    const [notificacao, setNotificacao] = useState<{ id: number; mensagem: string } | null>(null);
-    const proximoIdNotificacao = useRef(0);
+    const [sucesso, setSucesso] = useState<string | null>(null);
 
     useEffect(() => {
         if (!eAdmin) return;
@@ -64,6 +62,7 @@ export function MateriaisPage() {
     async function handleSubmit(evento: FormEvent<HTMLFormElement>) {
         evento.preventDefault();
         setErro(null);
+        setSucesso(null);
         setSalvando(true);
 
         try {
@@ -75,10 +74,7 @@ export function MateriaisPage() {
                 setMateriais((atuais) => atuais
                     .map((item) => item.id === atualizado.id ? atualizado : item)
                     .sort((a, b) => a.nome.localeCompare(b.nome)));
-                setNotificacao({
-                    id: ++proximoIdNotificacao.current,
-                    mensagem: 'Material atualizado com sucesso.',
-                });
+                setSucesso('Material atualizado com sucesso.');
                 setMaterialEmEdicao(null);
             } else {
                 const material = await criarMaterial({
@@ -86,10 +82,7 @@ export function MateriaisPage() {
                     ...(descricao.trim() ? { descricao: descricao.trim() } : {}),
                 });
                 setMateriais((atuais) => [...atuais, material].sort((a, b) => a.nome.localeCompare(b.nome)));
-                setNotificacao({
-                    id: ++proximoIdNotificacao.current,
-                    mensagem: 'Material cadastrado com sucesso.',
-                });
+                setSucesso('Material cadastrado com sucesso.');
             }
             setNome('');
             setDescricao('');
@@ -144,13 +137,6 @@ export function MateriaisPage() {
 
     return (
         <Layout>
-            {notificacao && (
-                <ToastSucesso
-                    key={notificacao.id}
-                    mensagem={notificacao.mensagem}
-                    onFechar={() => setNotificacao(null)}
-                />
-            )}
             <section className="materials-page">
                 <header className="materials-heading">
                     <div className="detail-title-row">
@@ -163,6 +149,7 @@ export function MateriaisPage() {
                 </header>
 
                 {erro && <Aviso tipo="erro" mensagem={erro} />}
+                {sucesso && <Aviso tipo="sucesso" mensagem={sucesso} />}
 
                 <div>
                     <h1>Materiais</h1>

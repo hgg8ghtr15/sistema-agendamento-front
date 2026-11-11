@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import {
     buscarMassagem,
@@ -14,7 +14,6 @@ import { Layout } from '../components/layout/Layout';
 import { Carregando } from '../components/ui/Carregando';
 import { Aviso } from '../components/ui/Aviso';
 import { Botao } from '../components/ui/Botao';
-import { ToastSucesso } from '../components/ui/ToastSucesso';
 import { YoutubeThumbnail } from '../components/massagens/YoutubeThumbnail';
 import { useAuth } from '../hooks/useAuth';
 import { Icon } from '@mdi/react';
@@ -37,8 +36,7 @@ export function EditarMassagemPage() {
     const [erro, setErro] = useState<string | null>(null);
     const [salvando, setSalvando] = useState(false);
     const [salvandoMateriais, setSalvandoMateriais] = useState(false);
-    const [notificacao, setNotificacao] = useState<{ id: number; mensagem: string } | null>(null);
-    const proximoIdNotificacao = useRef(0);
+    const [sucesso, setSucesso] = useState<string | null>(null);
 
     const [formData, setFormData] = useState<AtualizarMassagemDto>({
         nome: '',
@@ -123,6 +121,7 @@ export function EditarMassagemPage() {
         if (!id || !massagem) return;
         if (!window.confirm(`Deseja remover ${email} desta massagem?`)) return;
 
+        setSucesso(null);
         setErroMassagistas(null);
         setDesvinculandoMassagista(true);
         try {
@@ -134,10 +133,7 @@ export function EditarMassagemPage() {
                 setMassagistaResponsavelId('');
                 setResponsavelAlterado(false);
             }
-            setNotificacao({
-                id: ++proximoIdNotificacao.current,
-                mensagem: `${email} removido(a) da massagem.`,
-            });
+            setSucesso(`${email} removido(a) da massagem.`);
         } catch (err: unknown) {
             try {
                 const atualizada = await buscarMassagem(Number(id));
@@ -170,6 +166,7 @@ export function EditarMassagemPage() {
         if (!id) return;
 
         setErro(null);
+        setSucesso(null);
         setSalvando(true);
 
         try {
@@ -219,10 +216,7 @@ export function EditarMassagemPage() {
             } else {
                 setMassagem(atualizada);
             }
-            setNotificacao({
-                id: ++proximoIdNotificacao.current,
-                mensagem: 'Massagem salva com sucesso.',
-            });
+            setSucesso('Massagem salva com sucesso.');
         } catch (err: unknown) {
             if (err && typeof err === 'object' && 'response' in err) {
                 const axiosErr = err as { response?: { data?: { message?: string } } };
@@ -260,6 +254,9 @@ export function EditarMassagemPage() {
         evento.preventDefault();
         if (!id) return;
 
+        setErro(null);
+        setSucesso(null);
+
         if (fichaMateriais.some((item) =>
             !Number.isInteger(item.materialId) || item.materialId < 1 ||
             !Number.isInteger(item.quantidade) || item.quantidade < 1 ||
@@ -275,7 +272,6 @@ export function EditarMassagemPage() {
             return;
         }
 
-        setErro(null);
         setSalvandoMateriais(true);
         try {
             const atualizada = await substituirMateriaisMassagem(
@@ -288,10 +284,7 @@ export function EditarMassagemPage() {
                 quantidade,
                 unidade,
             })));
-            setNotificacao({
-                id: ++proximoIdNotificacao.current,
-                mensagem: 'Materiais salvos com sucesso.',
-            });
+            setSucesso('Materiais salvos com sucesso.');
         } catch (err: unknown) {
             if (err && typeof err === 'object' && 'response' in err) {
                 const axiosErr = err as { response?: { data?: { message?: string | string[] } } };
@@ -315,14 +308,8 @@ export function EditarMassagemPage() {
 
     return (
         <Layout>
-            {notificacao && (
-                <ToastSucesso
-                    key={notificacao.id}
-                    mensagem={notificacao.mensagem}
-                    onFechar={() => setNotificacao(null)}
-                />
-            )}
             {erro && <Aviso tipo="erro" mensagem={erro} />}
+            {sucesso && <Aviso tipo="sucesso" mensagem={sucesso} />}
 
             <article className="detail-panel">
                 <div className="detail-heading">
